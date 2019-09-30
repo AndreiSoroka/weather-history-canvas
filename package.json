@@ -1,0 +1,27 @@
+{
+  "name": "weather-history-canvas",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "start": "webpack-dev-server --open --content-base dist",
+    "watch": "webpack --watch",
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/AndreiSoroka/weather-history-canvas.git"
+  },
+  "author": "Andrei Soroka",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AndreiSoroka/weather-history-canvas/issues"
+  },
+  "homepage": "https://github.com/AndreiSoroka/weather-history-canvas#readme",
+  "devDependencies": {
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1"
+  }
+}
