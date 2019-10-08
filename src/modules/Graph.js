@@ -27,8 +27,6 @@ export default class Graph {
     const { coordinatesByYear, coordinatesByMonth }
       = this._convertToGraph(data, min, max, type === TYPE_MONTH);
 
-    console.log('coordinatesByYear', coordinatesByYear);
-    console.log('coordinatesByMonth', coordinatesByMonth);
     this._clearCanvas();
     this._drawCartesianCoordinateSystem(max, min);
     this._drawGraph(coordinatesByYear, 'red');
@@ -68,7 +66,8 @@ export default class Graph {
 
   /**
    * Draw graph
-   * @param coordinates
+   * @param {Array} coordinates
+   * @param {string} color
    * @private
    */
   _drawGraph(coordinates, color) {

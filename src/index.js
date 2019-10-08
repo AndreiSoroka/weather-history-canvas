@@ -2,6 +2,7 @@ import './styles/style.css';
 import App from './modules/App.js';
 import Graph from './modules/Graph.js';
 import Store from './modules/Store.js';
+import Router from './modules/Router.js';
 
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 300;
@@ -20,8 +21,20 @@ const defaultState = {
   endYear: END_YEAR,
 };
 
+const pages = {};
+
 async function init() {
-  const app = new App(new Store, new Graph('graph', CANVAS_WIDTH, CANVAS_HEIGHT), defaultState);
+  const app = new App({
+    store: new Store,
+    graph: new Graph('graph', CANVAS_WIDTH, CANVAS_HEIGHT),
+    defaultState,
+  });
+  const router = new Router(pages);
+
+  router.onChangePage((error, page) => {
+    console.log(page);
+  });
+
   app.state.connect($startYear, 'startYear');
   app.state.connect($endYear, 'endYear');
   app.state.on('range', ({ startYear, endYear }) => {

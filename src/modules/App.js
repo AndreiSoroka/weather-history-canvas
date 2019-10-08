@@ -67,7 +67,7 @@ Object.defineProperties(state, {
 });
 
 export default class App {
-  constructor(store, graph, defaultState) {
+  constructor({ store, graph, defaultState }) {
     this.state = state;
 
     for (let key in defaultState) {
@@ -80,7 +80,7 @@ export default class App {
     this.graph = graph;
   }
 
-  async drawGraph(start = 1996, end = 2006, type = 'temperature') {
+  async drawGraph(start, end, type = 'temperature') {
     if (type === 'temperature') {
       const { result } = await this.store.getTemperatureData(start, end);
       this.graph.draw(start, end, result);
