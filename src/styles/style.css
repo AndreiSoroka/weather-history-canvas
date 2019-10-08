@@ -28,16 +28,19 @@ body {
     flex: 2;
 }
 
-button {
+.nav-el {
+    display: inline-block;
+    text-decoration: none;
     min-width: 150px;
     padding: 10px;
     background: grey;
     color: white;
     font-size: 20px;
     margin-bottom: 5px;
+    text-align: center;
 }
 
-button:hover {
+.nav-el:hover {
     cursor: pointer;
     background: dimgrey;
 }

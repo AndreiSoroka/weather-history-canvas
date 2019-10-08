@@ -2,33 +2,64 @@ const state = {};
 Object.defineProperties(state, {
   startYear: {
     set(value) {
-      this._startYear = parseInt(value);
-      this.emit('startYear', this._startYear);
-      this.emit('range', this.range);
+      const startYear = parseInt(value);
+      if (startYear !== this._startYear) {
+        this._startYear = startYear;
+        this.emit('startYear', this._startYear);
+        this.emit('range', this.range);
+      }
     },
     get() {
       return this._startYear;
     },
   },
+
   endYear: {
     set(value) {
-      this._endYear = parseInt(value);
-      this.emit('endYear', this._endYear);
-      this.emit('range', this.range);
+      const endYear = parseInt(value);
+      if (endYear !== this._endYear) {
+        this._endYear = endYear;
+        this.emit('endYear', this._endYear);
+        this.emit('range', this.range);
+      }
     },
     get() {
       return this._endYear;
     },
   },
+
+  type: {
+    set(value) {
+      // validate
+      if (!['temperature', 'precipitation'].includes(value)) {
+        // todo
+        return;
+      }
+
+      if (this._type !== value) {
+        this._type = value;
+        this.emit('type', this._type);
+        this.emit('range', this.range);
+      }
+    },
+    get() {
+      return this._type;
+    },
+  },
+
   range: {
     get() {
       return {
         startYear: Math.min(this.startYear, this.endYear),
         endYear: Math.max(this.startYear, this.endYear),
+        type: this.type,
       };
     },
   },
 
+  /**
+   *
+   */
   emit: {
     value(key, value) {
       if (!this._listeners || !this._listeners[key]) {
@@ -39,6 +70,10 @@ Object.defineProperties(state, {
       }
     },
   },
+
+  /**
+   *
+   */
   on: {
     value(key, fn) {
       if (!this._listeners) {
@@ -50,7 +85,11 @@ Object.defineProperties(state, {
       this._listeners[key].push(fn);
     },
   },
-  connect: {
+
+  /**
+   *
+   */
+  connectEl: {
     value($el, key) {
       $el.value = this[key].toString();
       $el.addEventListener('change', (el) => {
@@ -61,6 +100,28 @@ Object.defineProperties(state, {
           return;
         }
         $el.value = value.toString();
+      });
+    },
+  },
+
+  /**
+   *
+   */
+  connectRouter: {
+    value(router, key, handle = () => true) {
+      if (router.currentPage.type) {
+        this.type = router.currentPage.type;
+      }
+      router.onChangePage(page => {
+        console.log(page);
+        if (!handle(page)) {
+          return;
+        }
+        this.type = page.type;
+      });
+      this.on('type', (value) => {
+        // todo
+        router.push(`/${value}`);
       });
     },
   },

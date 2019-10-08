@@ -1,24 +1,28 @@
-const DEFAULT = '/';
-const NOT_FOUND = '/not-found';
+const DEFAULT_PAGE = '/';
+const NOT_FOUND_PAGE = '/not-found';
 
 const defaultPages = {
-  [NOT_FOUND]: {
+  [NOT_FOUND_PAGE]: {
     name: 'Not found',
     isError: true,
-    isDefault: true
+    isDefault: true,
   },
-  [DEFAULT]: {
+  [DEFAULT_PAGE]: {
     name: 'Default page',
-    isDefault: true
+    isDefault: true,
   },
 };
 
 export default class Router {
-  constructor(pages) {
+  constructor({ pages, defaultPage = DEFAULT_PAGE }) {
     this.pages = { ...defaultPages, ...pages };
+    this.defaultPage = defaultPage;
+
+    const path = this._getPath();
+    this.currentPage = this.pages[path] || this.pages[this.defaultPage];
     this.fnsChangePages = [];
 
-    this.beforeEnter(this._getPath());
+    this._beforeEnter(path);
     window.onpopstate = (e) => this._handleOnpopstate(e);
   }
 
@@ -26,9 +30,13 @@ export default class Router {
     this.fnsChangePages.push(fn);
   }
 
+  push(path) {
+    window.location.hash = `#${path}`;
+  }
+
   _handleOnpopstate() {
     const path = this._getPath();
-    return this.beforeEnter(path, ()=>{
+    return this._beforeEnter(path, () => {
       for (let fn of this.fnsChangePages) {
         fn(this.pages[path]);
       }
@@ -39,14 +47,15 @@ export default class Router {
     return window.location.hash.replace('#', '');
   }
 
-  beforeEnter(path, next = () => true) {
+  _beforeEnter(path, next = () => true) {
     if (!path) {
-      window.location.hash = `#${DEFAULT}`;
-      return;
+      return this.push(this.defaultPage);
     } else if (!this.pages[path]) {
-      window.location.hash = `#${NOT_FOUND}`;
-      return;
+      return this.push(NOT_FOUND_PAGE);
+    } else if (this.pages[path].redirect){
+      return this.push(this.pages[path].redirect)
     }
+    this.currentPage = this.pages[path];
     return next();
   }
 }
