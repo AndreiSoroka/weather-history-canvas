@@ -45,10 +45,15 @@ export default class Store {
    * @returns {Promise<void>}
    */
   async getTemperatureData(start, end) {
-    // first load
+    // todo first load
     if (true) {
       await this._loadTemperatureDataFromServer();
     }
+
+    return this._transactionFromHandle({
+      name: NAME_TEMPERATURE,
+      fnHandle: objectStore => objectStore.getAll(IDBKeyRange.bound(start, end)),
+    });
   }
 
   /**
@@ -58,58 +63,62 @@ export default class Store {
    */
   async _loadTemperatureDataFromServer() {
     const data = await Store.loadingDataFromServer(NAME_TEMPERATURE);
-    await this._transactionFromHandle(NAME_TEMPERATURE, objectStore => {
-      let cursor = 0;
+    await this._transactionFromHandle({
+      name: NAME_TEMPERATURE,
+      type: 'readwrite',
+      fnHandle: objectStore => {
+        let cursor = 0;
 
-      let cursorStartByYear = 0;
-      let currentYear = 0;
-      let commonDataByYears = 0;
+        let cursorStartByYear = 0;
+        let currentYear = 0;
+        let commonDataByYears = 0;
 
-      let months = {};
-      let cursorStartByMonth = 0;
-      let currentMonth = 0;
-      let commonDataByMonth = 0;
+        let months = {};
+        let cursorStartByMonth = 0;
+        let currentMonth = 0;
+        let commonDataByMonth = 0;
 
-      while (data[cursor]) {
-        const item = data[cursor];
-        const [year, month] = item.t.split('-').map(i => +i);
+        while (data[cursor]) {
+          const item = data[cursor];
+          const [year, month] = item.t.split('-').map(i => +i);
 
-        if (currentMonth !== month) {
-          if (currentMonth) {
-            saveDataByMonth();
-          }
-
-          commonDataByYears += commonDataByMonth;
-          if (currentYear !== year) {
-            if (currentYear) {
-              saveDataByYear();
-              months = {};
+          if (currentMonth !== month) {
+            if (currentMonth) {
+              saveDataByMonth();
             }
 
-            commonDataByYears = 0;
-            currentYear = year;
-            cursorStartByYear = cursor;
+            commonDataByYears += commonDataByMonth;
+            if (currentYear !== year) {
+              if (currentYear) {
+                saveDataByYear();
+                months = {};
+              }
+
+              commonDataByYears = 0;
+              currentYear = year;
+              cursorStartByYear = cursor;
+            }
+
+            cursorStartByMonth = cursor;
+            commonDataByMonth = item.v;
+            currentMonth = month;
+          } else {
+            commonDataByMonth += item['v'] * 100;
           }
-
-          cursorStartByMonth = cursor;
-          commonDataByMonth = item.v;
-          currentMonth = month;
-        } else {
-          commonDataByMonth += item['v'] * 10;
+          ++cursor;
         }
-        ++cursor;
-      }
-      saveDataByMonth();
-      saveDataByYear();
+        saveDataByMonth();
+        saveDataByYear();
 
-      function saveDataByYear() {
-        const v = Math.round(commonDataByYears / (cursor - cursorStartByYear) * 10) / 100;
-        objectStore.put({ v, months }, currentYear);
-      }
+        function saveDataByYear() {
+          const v = Math.round(commonDataByYears / (cursor - cursorStartByYear));
+          objectStore.put({ v, months, year: currentYear }, currentYear);
+        }
 
-      function saveDataByMonth() {
-        months[currentMonth] = Math.round(commonDataByMonth / (cursor - cursorStartByMonth) * 10) / 100;
-      }
+        function saveDataByMonth() {
+          months[currentMonth] = { v: Math.round(commonDataByMonth / (cursor - cursorStartByMonth)) };
+        }
+      },
     });
   }
 
@@ -117,18 +126,19 @@ export default class Store {
    * Handler for multiple transaction
    * @param {String} name - table name
    * @param {Function} fnHandle - handler for transaction
+   * @param {String} [type] - readonly/readwrite
    * @returns {Promise<*>}
    * @private
    */
-  async _transactionFromHandle(name, fnHandle) {
+  async _transactionFromHandle({ name, fnHandle, type = 'readonly' }) {
     const db = await this.db;
-    const transaction = db.transaction(name, 'readwrite');
+    const transaction = db.transaction(name, type);
 
     const objectStore = transaction.objectStore(name);
-    fnHandle(objectStore);
+    const result = fnHandle(objectStore);
     return new Promise(resolve => {
       transaction.oncomplete = () => {
-        resolve();
+        resolve(result);
       };
     });
   };

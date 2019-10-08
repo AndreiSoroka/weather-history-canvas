@@ -1,3 +1,6 @@
+const TYPE_YEAR = 'year';
+const TYPE_MONTH = 'month';
+
 export default class Graph {
   constructor(elementId, CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_PADDING = 50) {
     const graphCanvas = document.getElementById(elementId);
@@ -13,13 +16,25 @@ export default class Graph {
 
   /**
    * Draw canvas
-   * @param dataY
+   * @param {number} start
+   * @param {number} end
+   * @param {Array} data
    */
-  draw(dataY) {
-    const { min, max, coordinates } = this._convertToGraph(dataY);
+  draw(start, end, data) {
+    const type = data.length > 25 ? TYPE_YEAR : TYPE_MONTH;
+    const { min, max } = this._findMinMaxInData(data, type);
+
+    const { coordinatesByYear, coordinatesByMonth }
+      = this._convertToGraph(data, min, max, type === TYPE_MONTH);
+
+    console.log('coordinatesByYear', coordinatesByYear);
+    console.log('coordinatesByMonth', coordinatesByMonth);
     this._clearCanvas();
     this._drawCartesianCoordinateSystem(max, min);
-    this._drawGraph(coordinates);
+    this._drawGraph(coordinatesByYear, 'red');
+    if (coordinatesByMonth.length > 0) {
+      this._drawGraph(coordinatesByMonth, 'green');
+    }
   }
 
   /**
@@ -56,9 +71,9 @@ export default class Graph {
    * @param coordinates
    * @private
    */
-  _drawGraph(coordinates) {
+  _drawGraph(coordinates, color) {
     this.ctx.beginPath();
-    this.ctx.strokeStyle = 'black';
+    this.ctx.strokeStyle = color;
     this.ctx.moveTo.apply(this.ctx, coordinates[0]);
     for (let i = 1; i < coordinates.length; ++i) {
       this.ctx.lineTo.apply(this.ctx, coordinates[i]);
@@ -67,41 +82,86 @@ export default class Graph {
   }
 
   /**
-   * Calculated graph coordinates and found min and max values
+   * O(n)
    * @param data
-   * @returns {{min: number, max: number, coordinates: Array}}
+   * @param type
+   * @returns {{min: number, max: number}}
+   * @private
    */
-  _convertToGraph(data) {
-    const coordinates = [];
+  _findMinMaxInData(data, type = TYPE_YEAR) {
     let min = Infinity;
     let max = -Infinity;
 
-    // search min and max in graph
-    for (let y of data) {
-      if (min > y) {
-        min = y;
+    if (type === TYPE_YEAR) {
+      for (let item of data) {
+        if (min > item.v) {
+          min = item.v;
+        }
+        if (max < item.v) {
+          max = item.v;
+        }
       }
-      if (max < y) {
-        max = y;
+    } else if (type === TYPE_MONTH) {
+      for (let item of data) {
+        for (let i = 1; i <= 12; ++i) {
+          if (min > item.months[i].v) {
+            min = item.months[i].v;
+          }
+          if (max < item.months[i].v) {
+            max = item.months[i].v;
+          }
+        }
       }
     }
 
+    return { min, max };
+  }
+
+  /**
+   * Calculated graph coordinates by month and year
+   * O(n)
+   * @param {Array} data
+   * @param {number} min
+   * @param {number} max
+   * @param {boolean} parseMonth
+   * @returns {{coordinatesByMonth: Array, coordinatesByYear: Array}}
+   * @private
+   */
+  _convertToGraph(data, min, max, parseMonth) {
+    const coordinatesByYear = [];
+    const coordinatesByMonth = [];
+
     // calculate coordinates
     const MaxMinDifference = max - min;
-    const dataLength = data.length - 1;
+
+    const dataLengthByYear = data.length;
+    const dataLengthByMonth = (data.length) * 11;
 
     const graphWidth = this.CANVAS_WIDTH - this.GRAPH_PADDING * 2;
     const graphHeight = this.CANVAS_HEIGHT - this.GRAPH_PADDING * 2;
     const INVERT_VALUES_OF_Y = this.GRAPH_PADDING + graphHeight;
 
-    for (let i = 0; i <= dataLength; ++i) {
-      const yValue = data[i];
-      coordinates.push([
-        this.GRAPH_PADDING + graphWidth * i / dataLength,
+    for (let cursorYear = 0; cursorYear < dataLengthByYear; ++cursorYear) {
+      // by year
+      const yValue = data[cursorYear].v;
+      coordinatesByYear.push([
+        this.GRAPH_PADDING + graphWidth * cursorYear / (dataLengthByYear - 1),
         INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
       ]);
+
+      // by month
+      if (parseMonth) {
+        for (let cursorMonth = 1; cursorMonth <= 12; ++cursorMonth) {
+          const yValue = data[cursorYear].months[cursorMonth].v;
+          const i = cursorYear * 11 + (cursorMonth - 1);
+          coordinatesByMonth.push([
+            this.GRAPH_PADDING + graphWidth * i / dataLengthByMonth,
+            INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
+          ]);
+        }
+      }
     }
 
-    return { coordinates, min, max };
+    return { coordinatesByMonth, coordinatesByYear };
   }
 }

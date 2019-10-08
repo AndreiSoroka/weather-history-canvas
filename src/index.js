@@ -2,10 +2,6 @@ import './styles/style.css';
 import Graph from './modules/Graph.js';
 import Store from './modules/Store.js';
 
-// const dataY = [
-//   25, 20, 30, 20, 15, 25, 20, 20, 25, 26, 20, 27, 30, 41, 34, 37, 30, 40, 31, 29, 27, 25,
-// ];
-
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 300;
 
@@ -16,22 +12,19 @@ class App {
     this.graph = graph;
   }
 
-  drawGraph(start = 1881, end = 2006, type = 'temperature') {
-    let data;
+  async drawGraph(start = 1996, end = 2006, type = 'temperature') {
     if (type === 'temperature') {
-      data = this.store.getTemperatureData(start, end);
-      console.log(data);
+      const { result } = await this.store.getTemperatureData(start, end);
+      this.graph.draw(start, end, result);
     }
-    // this.graph.draw(dataY);
   }
-
 
 }
 
 
 async function init() {
   const app = new App(new Store, new Graph('graph', CANVAS_WIDTH, CANVAS_HEIGHT));
-  app.drawGraph();
+  app.drawGraph().then();
 }
 
 init().then();
