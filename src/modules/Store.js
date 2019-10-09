@@ -42,16 +42,17 @@ export default class Store {
    *
    * @param start
    * @param end
+   * @param type
    * @returns {Promise<void>}
    */
-  async getTemperatureData(start, end) {
+  async getData(start, end, type) {
     // todo first load
     if (true) {
-      await this._loadTemperatureDataFromServer();
+      await this._loadTemperatureDataFromServer(type);
     }
 
     return this._transactionFromHandle({
-      name: NAME_TEMPERATURE,
+      name: type,
       fnHandle: objectStore => objectStore.getAll(IDBKeyRange.bound(start, end)),
     });
   }
@@ -61,10 +62,10 @@ export default class Store {
    * @returns {Promise<void>}
    * @private
    */
-  async _loadTemperatureDataFromServer() {
-    const data = await Store.loadingDataFromServer(NAME_TEMPERATURE);
+  async _loadTemperatureDataFromServer(type) {
+    const data = await Store.loadingDataFromServer(type);
     await this._transactionFromHandle({
-      name: NAME_TEMPERATURE,
+      name: type,
       type: 'readwrite',
       fnHandle: objectStore => {
         let cursor = 0;
@@ -151,6 +152,9 @@ export default class Store {
   static async loadingDataFromServer(type) {
     if (type === NAME_TEMPERATURE) {
       return import('../serverMocData/temperature.json');
+    }
+    if (type === NAME_PRECIPITATION) {
+      return import('../serverMocData/precipitation.json');
     }
 
     return [];

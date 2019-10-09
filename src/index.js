@@ -62,10 +62,10 @@ async function init() {
   app.state.connectEl($startYear, 'startYear');
   app.state.connectEl($endYear, 'endYear');
   app.state.on('range', ({ startYear, endYear, type }) => {
-    app.drawGraph(startYear, endYear).then();
+    app.drawGraph(startYear, endYear, type).then();
   });
 
-  app.drawGraph(app.state.startYear, app.state.endYear).then();
+  app.drawGraph(app.state.startYear, app.state.endYear, app.state.type).then();
 }
 
 init().then();

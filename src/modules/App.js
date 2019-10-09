@@ -142,9 +142,10 @@ export default class App {
   }
 
   async drawGraph(start, end, type = 'temperature') {
-    if (type === 'temperature') {
-      const { result } = await this.store.getTemperatureData(start, end);
-      this.graph.draw(start, end, result);
-    }
+    const logKey = `drawGraph ${start}-${end}, ${type}`;
+    console.time(logKey);
+    const { result } = await this.store.getData(start, end, type);
+    this.graph.draw(start, end, result);
+    console.timeEnd(logKey);
   }
 }
