@@ -3,7 +3,36 @@ const NAME_PRECIPITATION = 'precipitation';
 
 export default class Store {
   constructor() {
-    this.db = this._connectDB(window.indexedDB);
+    this.db = this._connectDB(window.indexedDB)
+      .then(this._initLocalState.bind(this));
+  }
+
+  async _initLocalState(db) {
+    this.isLoaded = {
+      [NAME_TEMPERATURE]: false,
+      [NAME_PRECIPITATION]: false,
+    };
+
+    // check data in DB
+    for (let key in this.isLoaded) {
+      if (!this.isLoaded.hasOwnProperty(key)) {
+        continue;
+      }
+
+      const countQuery = db.transaction(key).objectStore(key).count();
+      const count = await new Promise((resolve) => {
+        countQuery.onsuccess = () => {
+          resolve(countQuery.result);
+        };
+        countQuery.onerror = () => {
+          resolve(0);
+        };
+      });
+
+      this.isLoaded[key] = count > 0;
+    }
+
+    return db;
   }
 
   /**
@@ -46,9 +75,10 @@ export default class Store {
    * @returns {Promise<void>}
    */
   async getData(start, end, type) {
-    // todo first load
-    if (true) {
+    await this.db;
+    if (!this.isLoaded[type]) {
       await this._loadTemperatureDataFromServer(type);
+      this.isLoaded[type] = true;
     }
 
     return this._transactionFromHandle({
@@ -73,6 +103,8 @@ export default class Store {
         let cursorStartByYear = 0;
         let currentYear = 0;
         let commonDataByYears = 0;
+        let maxInYear = -Infinity;
+        let minInYear = Infinity;
 
         let months = {};
         let cursorStartByMonth = 0;
@@ -113,11 +145,19 @@ export default class Store {
 
         function saveDataByYear() {
           const v = Math.round(commonDataByYears / (cursor - cursorStartByYear));
-          objectStore.put({ v, months, year: currentYear }, currentYear);
+          objectStore.put({ v, months, year: currentYear, max: maxInYear, min: minInYear }, currentYear);
+          maxInYear = -Infinity;
+          minInYear = Infinity;
         }
 
         function saveDataByMonth() {
           months[currentMonth] = { v: Math.round(commonDataByMonth / (cursor - cursorStartByMonth)) };
+          if (maxInYear < months[currentMonth].v) {
+            maxInYear = months[currentMonth].v;
+          }
+          if (minInYear > months[currentMonth].v) {
+            minInYear = months[currentMonth].v;
+          }
         }
       },
     });

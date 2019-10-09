@@ -68,4 +68,4 @@ async function init() {
   app.drawGraph(app.state.startYear, app.state.endYear, app.state.type).then();
 }
 
-init().then();
+document.addEventListener("load", init().then());

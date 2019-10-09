@@ -29,9 +29,13 @@ export default class Graph {
 
     this._clearCanvas();
     this._drawCartesianCoordinateSystem(max, min);
-    this._drawGraph(coordinatesByYear, 'red');
+
     if (coordinatesByMonth.length > 0) {
-      this._drawGraph(coordinatesByMonth, 'green');
+      this._drawGraph(coordinatesByYear, 'red');
+      this._drawGraph(coordinatesByMonth, 'rgba(52,43,95,0.52)');
+    } else {
+      this._drawGraph(coordinatesByYear, 'red');
+      this._drawFluctuations(coordinatesByYear, '#ff000055', '#0000ff55');
     }
   }
 
@@ -62,6 +66,20 @@ export default class Graph {
     this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
 
     this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = 'lightgrey';
+    // x middle
+    this.ctx.moveTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT / 2);
+    this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT / 2);
+
+    // text y
+    this.ctx.font = '12px verdana';
+    this.ctx.fillText(max / 100, 0, this.GRAPH_PADDING + 5);
+    this.ctx.fillText((max + min) / 200, 0, (this.CANVAS_HEIGHT) / 2 + 5);
+    this.ctx.fillText(min / 100, 0, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 5);
+
+    this.ctx.stroke();
   }
 
   /**
@@ -73,9 +91,40 @@ export default class Graph {
   _drawGraph(coordinates, color) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
-    this.ctx.moveTo.apply(this.ctx, coordinates[0]);
-    for (let i = 1; i < coordinates.length; ++i) {
-      this.ctx.lineTo.apply(this.ctx, coordinates[i]);
+    if (coordinates.length > 1) {
+      this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+      for (let i = 1; i < coordinates.length; ++i) {
+        this.ctx.lineTo(coordinates[i].x, coordinates[i].y);
+      }
+    } else if (coordinates.length === 1) {
+      this.ctx.moveTo(this.GRAPH_PADDING, coordinates[0].y);
+      this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, coordinates[0].y);
+    }
+    this.ctx.stroke();
+
+  }
+
+  /**
+   * Draw fluctuations
+   * @param {Array} coordinates
+   * @param {string} colorUp
+   * @param {string} colorDown
+   * @private
+   */
+  _drawFluctuations(coordinates, colorUp, colorDown) {
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = colorUp;
+    for (let coordinate of coordinates) {
+      this.ctx.moveTo(coordinate.x, coordinate.max);
+      this.ctx.lineTo(coordinate.x, coordinate.y);
+    }
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = colorDown;
+    for (let coordinate of coordinates) {
+      this.ctx.moveTo(coordinate.x, coordinate.min);
+      this.ctx.lineTo(coordinate.x, coordinate.y);
     }
     this.ctx.stroke();
   }
@@ -93,11 +142,11 @@ export default class Graph {
 
     if (type === TYPE_YEAR) {
       for (let item of data) {
-        if (min > item.v) {
-          min = item.v;
+        if (min > item.min) {
+          min = item.min;
         }
-        if (max < item.v) {
-          max = item.v;
+        if (max < item.max) {
+          max = item.max;
         }
       }
     } else if (type === TYPE_MONTH) {
@@ -143,20 +192,26 @@ export default class Graph {
     for (let cursorYear = 0; cursorYear < dataLengthByYear; ++cursorYear) {
       // by year
       const yValue = data[cursorYear].v;
-      coordinatesByYear.push([
-        this.GRAPH_PADDING + graphWidth * cursorYear / (dataLengthByYear - 1),
-        INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
-      ]);
+      coordinatesByYear.push(
+        {
+          x: this.GRAPH_PADDING + graphWidth * cursorYear / (dataLengthByYear - 1),
+          y: INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
+          min: INVERT_VALUES_OF_Y - (data[cursorYear].min - min) / MaxMinDifference * graphHeight,
+          max: INVERT_VALUES_OF_Y - (data[cursorYear].max - min) / MaxMinDifference * graphHeight,
+        },
+      );
 
       // by month
       if (parseMonth) {
         for (let cursorMonth = 1; cursorMonth <= 12; ++cursorMonth) {
           const yValue = data[cursorYear].months[cursorMonth].v;
           const i = cursorYear * 11 + (cursorMonth - 1);
-          coordinatesByMonth.push([
-            this.GRAPH_PADDING + graphWidth * i / dataLengthByMonth,
-            INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
-          ]);
+          coordinatesByMonth.push(
+            {
+              x: this.GRAPH_PADDING + graphWidth * i / dataLengthByMonth,
+              y: INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
+            },
+          );
         }
       }
     }
