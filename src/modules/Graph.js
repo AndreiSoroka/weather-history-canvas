@@ -28,7 +28,7 @@ export default class Graph {
       = this._convertToGraph(data, min, max, type === TYPE_MONTH);
 
     this._clearCanvas();
-    this._drawCartesianCoordinateSystem(max, min);
+    this._drawCartesianCoordinateSystem(max, min, start, end);
 
     if (coordinatesByMonth.length > 0) {
       this._drawGraph(coordinatesByYear, 'red');
@@ -53,7 +53,7 @@ export default class Graph {
    * @param min
    * @private
    */
-  _drawCartesianCoordinateSystem(max, min) {
+  _drawCartesianCoordinateSystem(max, min, start, end) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = 'grey';
 
@@ -75,9 +75,12 @@ export default class Graph {
 
     // text y
     this.ctx.font = '12px verdana';
-    this.ctx.fillText(max / 100, 0, this.GRAPH_PADDING + 5);
-    this.ctx.fillText((max + min) / 200, 0, (this.CANVAS_HEIGHT) / 2 + 5);
-    this.ctx.fillText(min / 100, 0, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 5);
+    this.ctx.fillText(max / 100, 0, this.GRAPH_PADDING);
+    this.ctx.fillText((max + min) / 200, 0, (this.CANVAS_HEIGHT) / 2);
+    this.ctx.fillText(min / 100, 0, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
+
+    this.ctx.fillText(start, this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
+    this.ctx.fillText(end, this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
 
     this.ctx.stroke();
   }
