@@ -2,11 +2,15 @@ const TYPE_YEAR = 'year';
 const TYPE_MONTH = 'month';
 
 export default class Graph {
-  constructor(elementId, CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_PADDING = 50) {
-    const graphCanvas = document.getElementById(elementId);
+  constructor(graphCanvas, CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_PADDING = 50) {
     this.CANVAS_WIDTH = CANVAS_WIDTH;
     this.CANVAS_HEIGHT = CANVAS_HEIGHT;
     this.GRAPH_PADDING = GRAPH_PADDING;
+    this.coordinatesByYear = [];
+    this.minY = 0;
+    this.maxY = 0;
+    this.start = 0;
+
     if (graphCanvas.getContext) {
       this.ctx = graphCanvas.getContext('2d');
     } else {
@@ -23,20 +27,47 @@ export default class Graph {
   draw(start, end, data) {
     const type = data.length > 25 ? TYPE_YEAR : TYPE_MONTH;
     const { min, max } = this._findMinMaxInData(data, type);
+    this.minY = min;
+    this.maxY = max;
+    this.start = start;
 
     const { coordinatesByYear, coordinatesByMonth }
       = this._convertToGraph(data, min, max, type === TYPE_MONTH);
 
+    this.coordinatesByYear = coordinatesByYear;
     this._clearCanvas();
     this._drawCartesianCoordinateSystem(max, min, start, end);
 
     if (coordinatesByMonth.length > 0) {
-      this._drawGraph(coordinatesByYear, 'red');
+      this._drawGraph(coordinatesByYear, 'red', true);
       this._drawGraph(coordinatesByMonth, 'rgba(52,43,95,0.52)');
     } else {
       this._drawGraph(coordinatesByYear, 'red');
       this._drawFluctuations(coordinatesByYear, '#ff000055', '#0000ff55');
     }
+  }
+
+  getInformation(x, y) {
+    if (x < this.GRAPH_PADDING
+      || x > this.CANVAS_WIDTH - this.GRAPH_PADDING
+      || y < this.GRAPH_PADDING
+      || y > this.CANVAS_HEIGHT - this.GRAPH_PADDING
+    ) {
+      return null;
+    }
+
+    const coefficientY = (this.CANVAS_HEIGHT - this.GRAPH_PADDING - y) / (this.CANVAS_HEIGHT - 2 * this.GRAPH_PADDING);
+    const infoY = Math.round(coefficientY * (this.maxY - this.minY) + this.minY) / 100;
+
+    let infoX = this.coordinatesByYear.length - 1;
+    for (let i = 0; i < this.coordinatesByYear.length; ++i) {
+      if (this.coordinatesByYear[i].x > x) {
+        infoX = i - 1;
+        break;
+      }
+    }
+
+    return { infoY, infoX: this.start + infoX };
   }
 
   /**
@@ -51,6 +82,8 @@ export default class Graph {
    *
    * @param max
    * @param min
+   * @param start
+   * @param end
    * @private
    */
   _drawCartesianCoordinateSystem(max, min, start, end) {
@@ -89,21 +122,31 @@ export default class Graph {
    * Draw graph
    * @param {Array} coordinates
    * @param {string} color
+   * @param {boolean} fullYear - when we separated by month, need show last line
    * @private
    */
-  _drawGraph(coordinates, color) {
+  _drawGraph(coordinates, color, fullYear = false) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
     if (coordinates.length > 1) {
+      this.ctx.setLineDash([]);
       this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
       for (let i = 1; i < coordinates.length; ++i) {
         this.ctx.lineTo(coordinates[i].x, coordinates[i].y);
       }
-    } else if (coordinates.length === 1) {
-      this.ctx.moveTo(this.GRAPH_PADDING, coordinates[0].y);
-      this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, coordinates[0].y);
     }
     this.ctx.stroke();
+
+    if (fullYear) {
+      this.ctx.beginPath();
+      // if (coordinates.length === 1 ) {
+      const item = coordinates[coordinates.length - 1];
+      this.ctx.setLineDash([2, 3]);
+      this.ctx.moveTo(item.x, item.y);
+      this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, item.y);
+      this.ctx.stroke();
+    }
+
 
   }
 
@@ -197,7 +240,7 @@ export default class Graph {
       const yValue = data[cursorYear].v;
       coordinatesByYear.push(
         {
-          x: this.GRAPH_PADDING + graphWidth * cursorYear / (dataLengthByYear - 1),
+          x: this.GRAPH_PADDING + graphWidth * cursorYear / (dataLengthByYear - +!parseMonth),
           y: INVERT_VALUES_OF_Y - (yValue - min) / MaxMinDifference * graphHeight,
           min: INVERT_VALUES_OF_Y - (data[cursorYear].min - min) / MaxMinDifference * graphHeight,
           max: INVERT_VALUES_OF_Y - (data[cursorYear].max - min) / MaxMinDifference * graphHeight,

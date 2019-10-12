@@ -11,6 +11,8 @@ const CANVAS_HEIGHT = 300;
 const START_YEAR = 1881;
 const END_YEAR = 2006;
 
+const $graph = document.getElementById('graph');
+const $graphInfo = document.getElementById('graph-info');
 const $startYear = document.getElementById('startYear');
 const $endYear = document.getElementById('endYear');
 for (let year = START_YEAR; year <= END_YEAR; ++year) {
@@ -27,7 +29,7 @@ const defaultState = {
 
 const pages = {
   '/': {
-    redirect: TEMPERATURE_PAGE
+    redirect: TEMPERATURE_PAGE,
   },
   [TEMPERATURE_PAGE]: {
     type: 'temperature',
@@ -40,7 +42,8 @@ const pages = {
 async function init() {
   const app = new App({
     store: new Store,
-    graph: new Graph('graph', CANVAS_WIDTH, CANVAS_HEIGHT),
+    graph: new Graph($graph, CANVAS_WIDTH, CANVAS_HEIGHT),
+    graphInfo: $graphInfo,
     defaultState,
   });
 
@@ -49,7 +52,6 @@ async function init() {
     router.push(TEMPERATURE_PAGE);
   }
 
-  // window.state = app.state;
   app.state.connectRouter(router, 'type', (page) => {
     if (page.isError) {
       alert('page not found');
@@ -57,6 +59,13 @@ async function init() {
       return false;
     }
     return true;
+  });
+
+  $graph.addEventListener('mousedown', function (event) {
+    const rect = $graph.getBoundingClientRect();
+    const x = (CANVAS_WIDTH / rect.width) * (event.clientX - rect.left);
+    const y = (CANVAS_HEIGHT / rect.height) * (event.clientY - rect.top);
+    app.showInformationInGraph(x, y, event.clientX - rect.left, event.clientY - rect.top);
   });
 
   app.state.connectEl($startYear, 'startYear');
@@ -68,4 +77,4 @@ async function init() {
   app.drawGraph(app.state.startYear, app.state.endYear, app.state.type).then();
 }
 
-document.addEventListener("load", init().then());
+document.addEventListener('load', init().then());

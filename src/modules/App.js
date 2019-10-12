@@ -128,8 +128,9 @@ Object.defineProperties(state, {
 });
 
 export default class App {
-  constructor({ store, graph, defaultState }) {
+  constructor({ store, graph, defaultState, graphInfo }) {
     this.state = state;
+    this.$graphInfo = graphInfo;
 
     for (let key in defaultState) {
       if (defaultState.hasOwnProperty(key) && state[key] === undefined) {
@@ -142,10 +143,24 @@ export default class App {
   }
 
   async drawGraph(start, end, type = 'temperature') {
+    this.$graphInfo.style.display = 'none';
     const logKey = `drawGraph ${start}-${end}, ${type}`;
     console.time(logKey);
     const { result } = await this.store.getData(start, end, type);
     this.graph.draw(start, end, result);
     console.timeEnd(logKey);
+  }
+
+  showInformationInGraph(x, y, originalX, originalY) {
+    const info = this.graph.getInformation(x, y);
+    if (!info){
+      this.$graphInfo.style.display = 'none';
+      return;
+    }
+    this.$graphInfo.style.display = 'block';
+    this.$graphInfo.innerHTML = `<div>Year: ${info.infoX}</div><div>Value: ${info.infoY}</div>`;
+
+    this.$graphInfo.style.top = `${originalY - this.$graphInfo.clientHeight - 5}px`;
+    this.$graphInfo.style.left = `${originalX - this.$graphInfo.clientWidth/2}px`;
   }
 }
