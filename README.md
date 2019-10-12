@@ -1,6 +1,6 @@
 # Weather history canvas
 
-Demo: 
+Demo: https://weather-history-canvas.herokuapp.com/
 
 ### Initialization
 ```bash
