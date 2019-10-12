@@ -12,6 +12,7 @@ const START_YEAR = 1881;
 const END_YEAR = 2006;
 
 const $graph = document.getElementById('graph');
+const $title = document.getElementById('title');
 const $graphInfo = document.getElementById('graph-info');
 const $startYear = document.getElementById('startYear');
 const $endYear = document.getElementById('endYear');
@@ -33,9 +34,11 @@ const pages = {
   },
   [TEMPERATURE_PAGE]: {
     type: 'temperature',
+    title: 'Temperature'
   },
   [PRECIPITATION_PAGE]: {
     type: 'precipitation',
+    title: 'Precipitation'
   },
 };
 
@@ -47,7 +50,7 @@ async function init() {
     defaultState,
   });
 
-  const router = new Router({ pages, defaultPage: TEMPERATURE_PAGE });
+  const router = new Router({ pages, defaultPage: TEMPERATURE_PAGE, title: $title });
   if (router.currentPage.isError) {
     router.push(TEMPERATURE_PAGE);
   }

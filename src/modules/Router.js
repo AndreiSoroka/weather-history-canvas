@@ -6,15 +6,18 @@ const defaultPages = {
     name: 'Not found',
     isError: true,
     isDefault: true,
+    title: 'Not found',
   },
   [DEFAULT_PAGE]: {
     name: 'Default page',
     isDefault: true,
+    title: 'Default page',
   },
 };
 
 export default class Router {
-  constructor({ pages, defaultPage = DEFAULT_PAGE }) {
+  constructor({ pages, defaultPage = DEFAULT_PAGE, title = null }) {
+    this.$title = title;
     this.pages = { ...defaultPages, ...pages };
     this.defaultPage = defaultPage;
 
@@ -52,10 +55,13 @@ export default class Router {
       return this.push(this.defaultPage);
     } else if (!this.pages[path]) {
       return this.push(NOT_FOUND_PAGE);
-    } else if (this.pages[path].redirect){
-      return this.push(this.pages[path].redirect)
+    } else if (this.pages[path].redirect) {
+      return this.push(this.pages[path].redirect);
     }
     this.currentPage = this.pages[path];
+    if (this.$title) {
+      this.$title.innerText = this.pages[path].title;
+    }
     return next();
   }
 }
