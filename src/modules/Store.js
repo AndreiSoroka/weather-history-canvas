@@ -4,9 +4,18 @@ const NAME_PRECIPITATION = 'precipitation';
 export default class Store {
   constructor() {
     this.db = this._connectDB(window.indexedDB)
-      .then(this._initLocalState.bind(this));
+      .then(this._initLocalState.bind(this))
+      .catch(error => {
+        alert(error);
+      });
   }
 
+  /**
+   * Initial state
+   * @param db - window.indexedDB
+   * @returns {Promise<*>}
+   * @private
+   */
   async _initLocalState(db) {
     this.isLoaded = {
       [NAME_TEMPERATURE]: false,
@@ -37,7 +46,7 @@ export default class Store {
 
   /**
    * Connect to indexedDB
-   * @param idb
+   * @param idb - window.indexedDB
    * @returns {Promise}
    * @private
    */
@@ -68,10 +77,10 @@ export default class Store {
   }
 
   /**
-   *
-   * @param start
-   * @param end
-   * @param type
+   * Get data from indexedDB
+   * @param {number} start - year
+   * @param {number} end - year
+   * @param {string} type - NAME_TEMPERATURE / NAME_PRECIPITATION
    * @returns {Promise<void>}
    */
   async getData(start, end, type) {
@@ -186,7 +195,7 @@ export default class Store {
 
   /**
    * Mock data from server (imitation query)
-   * @param type
+   * @param type - NAME_TEMPERATURE / NAME_PRECIPITATION
    * @returns {Promise<Array>}
    */
   static async loadingDataFromServer(type) {

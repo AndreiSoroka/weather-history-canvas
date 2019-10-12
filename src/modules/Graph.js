@@ -20,9 +20,9 @@ export default class Graph {
 
   /**
    * Draw canvas
-   * @param {number} start
-   * @param {number} end
-   * @param {Array} data
+   * @param {number} start - year
+   * @param {number} end - year
+   * @param {Array} data - data from storage
    */
   draw(start, end, data) {
     const type = data.length > 25 ? TYPE_YEAR : TYPE_MONTH;
@@ -47,6 +47,12 @@ export default class Graph {
     }
   }
 
+  /**
+   * Get information from graph
+   * @param {number} x - coordinate
+   * @param {number} y - coordinate
+   * @returns {null|{infoY: number, infoX: number}}
+   */
   getInformation(x, y) {
     if (x < this.GRAPH_PADDING
       || x > this.CANVAS_WIDTH - this.GRAPH_PADDING
@@ -71,7 +77,7 @@ export default class Graph {
   }
 
   /**
-   *
+   * Clear canvas
    * @private
    */
   _clearCanvas() {
@@ -80,10 +86,10 @@ export default class Graph {
 
   /**
    *
-   * @param max
-   * @param min
-   * @param start
-   * @param end
+   * @param {number} max - max coordinate
+   * @param {number} min - min coordinate
+   * @param {number} start - year
+   * @param {number} end - year
    * @private
    */
   _drawCartesianCoordinateSystem(max, min, start, end) {
@@ -120,7 +126,8 @@ export default class Graph {
 
   /**
    * Draw graph
-   * @param {Array} coordinates
+   * - just solid line
+   * @param {Array} coordinates – list of coordinates
    * @param {string} color
    * @private
    */
@@ -137,6 +144,13 @@ export default class Graph {
     this.ctx.stroke();
   }
 
+  /**
+   * Draw graph
+   * - group by levels
+   * @param {Array} coordinates – list of coordinates
+   * @param {string} color
+   * @private
+   */
   _drawGraphByGroup(coordinates, color) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
@@ -155,7 +169,7 @@ export default class Graph {
 
   /**
    * Draw fluctuations
-   * @param {Array} coordinates
+   * @param {Array} coordinates – list of coordinates
    * @param {string} colorUp
    * @param {string} colorDown
    * @private
@@ -179,9 +193,10 @@ export default class Graph {
   }
 
   /**
+   * Find max and min in data
    * O(n)
-   * @param data
-   * @param type
+   * @param {Array} data - data from storage
+   * @param {string} type - TYPE_YEAR / TYPE_MONTH
    * @returns {{min: number, max: number}}
    * @private
    */
@@ -217,9 +232,9 @@ export default class Graph {
   /**
    * Calculated graph coordinates by month and year
    * O(n)
-   * @param {Array} data
-   * @param {number} min
-   * @param {number} max
+   * @param {Array} data - data from storage
+   * @param {number} min - coordinate
+   * @param {number} max - coordinate
    * @param {boolean} parseMonth
    * @returns {{coordinatesByMonth: Array, coordinatesByYear: Array}}
    * @private

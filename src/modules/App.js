@@ -1,3 +1,7 @@
+/**
+ * Local state
+ * @type {Object}
+ */
 const state = {};
 Object.defineProperties(state, {
   startYear: {
@@ -57,10 +61,12 @@ Object.defineProperties(state, {
     },
   },
 
-  /**
-   *
-   */
   emit: {
+    /**
+     * Submit change event
+     * @param {string} key - variable in state
+     * @param {*} value
+     */
     value(key, value) {
       if (!this._listeners || !this._listeners[key]) {
         return;
@@ -71,10 +77,12 @@ Object.defineProperties(state, {
     },
   },
 
-  /**
-   *
-   */
   on: {
+    /**
+     * Tracking changes in state
+     * @param {string} key - variable in state
+     * @param {Function} fn - callback
+     */
     value(key, fn) {
       if (!this._listeners) {
         this._listeners = {};
@@ -86,10 +94,12 @@ Object.defineProperties(state, {
     },
   },
 
-  /**
-   *
-   */
   connectEl: {
+    /**
+     * Connect DOM element and state
+     * @param $el - DOM element
+     * @param key - variable in state
+     */
     value($el, key) {
       $el.value = this[key].toString();
       $el.addEventListener('change', (el) => {
@@ -104,10 +114,13 @@ Object.defineProperties(state, {
     },
   },
 
-  /**
-   *
-   */
   connectRouter: {
+    /**
+     * Connect router and state
+     * @param {Router} router
+     * @param {string} key - variable in state
+     * @param {Function} handle - callback
+     */
     value(router, key, handle = () => true) {
       if (router.currentPage.type) {
         this.type = router.currentPage.type;
@@ -127,6 +140,7 @@ Object.defineProperties(state, {
   },
 });
 
+
 export default class App {
   constructor({ store, graph, defaultState, graphInfo }) {
     this.state = state;
@@ -142,6 +156,13 @@ export default class App {
     this.graph = graph;
   }
 
+  /**
+   * Draw graph
+   * @param {number} start - year
+   * @param {number} end - year
+   * @param {string} type
+   * @returns {Promise<void>}
+   */
   async drawGraph(start, end, type = 'temperature') {
     this.$graphInfo.style.display = 'none';
     const logKey = `drawGraph ${start}-${end}, ${type}`;
@@ -151,6 +172,13 @@ export default class App {
     console.timeEnd(logKey);
   }
 
+  /**
+   * Show information in graph
+   * @param {number} x - scaled coordinate
+   * @param {number} y - scaled coordinate
+   * @param originalX - original coordinate
+   * @param originalY - original coordinate
+   */
   showInformationInGraph(x, y, originalX, originalY) {
     const info = this.graph.getInformation(x, y);
     if (!info){

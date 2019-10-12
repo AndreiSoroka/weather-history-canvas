@@ -29,14 +29,27 @@ export default class Router {
     window.onpopstate = (e) => this._handleOnpopstate(e);
   }
 
+  /**
+   * Keep track of changing events
+   * @param {Function} fn - callback function
+   */
   onChangePage(fn) {
     this.fnsChangePages.push(fn);
   }
 
+  /**
+   * Change router
+   * @param {string} path - router hash-path
+   */
   push(path) {
     window.location.hash = `#${path}`;
   }
 
+  /**
+   * Handle to window.onpopstate
+   * @returns {this._beforeEnter}
+   * @private
+   */
   _handleOnpopstate() {
     const path = this._getPath();
     return this._beforeEnter(path, () => {
@@ -46,10 +59,22 @@ export default class Router {
     });
   }
 
+  /**
+   * Get current router path
+   * @returns {string}
+   * @private
+   */
   _getPath() {
     return window.location.hash.replace('#', '');
   }
 
+  /**
+   * Handler before each change to the router
+   * @param {string} path - router hash-path
+   * @param {Function} next - callback
+   * @returns {next|void}
+   * @private
+   */
   _beforeEnter(path, next = () => true) {
     if (!path) {
       return this.push(this.defaultPage);
