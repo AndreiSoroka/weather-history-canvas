@@ -39,7 +39,7 @@ export default class Graph {
     this._drawCartesianCoordinateSystem(max, min, start, end);
 
     if (coordinatesByMonth.length > 0) {
-      this._drawGraph(coordinatesByYear, 'red', true);
+      this._drawGraphByGroup(coordinatesByYear, 'red');
       this._drawGraph(coordinatesByMonth, 'rgba(52,43,95,0.52)');
     } else {
       this._drawGraph(coordinatesByYear, 'red');
@@ -122,32 +122,35 @@ export default class Graph {
    * Draw graph
    * @param {Array} coordinates
    * @param {string} color
-   * @param {boolean} fullYear - when we separated by month, need show last line
    * @private
    */
-  _drawGraph(coordinates, color, fullYear = false) {
+  _drawGraph(coordinates, color) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
+    this.ctx.setLineDash([]);
     if (coordinates.length > 1) {
-      this.ctx.setLineDash([]);
       this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
       for (let i = 1; i < coordinates.length; ++i) {
         this.ctx.lineTo(coordinates[i].x, coordinates[i].y);
       }
     }
     this.ctx.stroke();
+  }
 
-    if (fullYear) {
-      this.ctx.beginPath();
-      // if (coordinates.length === 1 ) {
-      const item = coordinates[coordinates.length - 1];
-      this.ctx.setLineDash([2, 3]);
-      this.ctx.moveTo(item.x, item.y);
-      this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, item.y);
-      this.ctx.stroke();
+  _drawGraphByGroup(coordinates, color) {
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = color;
+    this.ctx.setLineDash([2, 3]);
+    this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+    let width = this.CANVAS_WIDTH - this.GRAPH_PADDING * 2;
+    if (coordinates[1]) {
+      width = coordinates[1].x - coordinates[0].x;
     }
-
-
+    for (let i = 0; i < coordinates.length; ++i) {
+      this.ctx.moveTo(coordinates[i].x, coordinates[i].y);
+      this.ctx.lineTo(coordinates[i].x + width, coordinates[i].y);
+    }
+    this.ctx.stroke();
   }
 
   /**
