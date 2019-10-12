@@ -11,7 +11,7 @@ npm install;
 ### Build
 ```bash
 // dev server
-npm run start;
+npm run run start:dev;
 
 // build
 npm run build;

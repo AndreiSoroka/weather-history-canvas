@@ -1,13 +1,15 @@
 {
   "name": "weather-history-canvas",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server --open --content-base dist",
+    "start": "node ./serve.js",
+    "devserver": "webpack-dev-server --open --content-base dist",
     "watch": "webpack --watch",
     "build": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "heroku-postbuild": "NODE_ENV=production npm run build"
   },
   "repository": {
     "type": "git",
@@ -24,8 +26,12 @@
     "css-loader": "^3.2.0",
     "html-webpack-plugin": "^3.2.0",
     "style-loader": "^1.0.0",
-    "webpack": "^4.41.0",
+    "webpack": "^4.41.1",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.1"
-  }
+    "webpack-dev-server": "^3.8.2"
+  },
+  "dependencies": {
+    "serve-handler": "^6.1.2"
+  },
+  "heroku-run-build-script": true
 }
