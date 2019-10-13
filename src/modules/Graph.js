@@ -13,6 +13,7 @@ export default class Graph {
 
     if (graphCanvas.getContext) {
       this.ctx = graphCanvas.getContext('2d');
+      this.ctx.save();
     } else {
       alert('Oyps...');
     }
@@ -36,15 +37,18 @@ export default class Graph {
 
     this.coordinatesByYear = coordinatesByYear;
     this._clearCanvas();
-    this._drawCartesianCoordinateSystem(max, min, start, end);
+    this._drawAxisBack(max, min, start, end);
 
     if (coordinatesByMonth.length > 0) {
-      this._drawGraphByGroup(coordinatesByYear, 'red');
-      this._drawGraph(coordinatesByMonth, 'rgba(52,43,95,0.52)');
+      this._drawLevelLines(coordinatesByYear, 'red');
+      this._drawLine(coordinatesByMonth, 1, 'rgba(52,43,95,0.52)');
     } else {
-      this._drawGraph(coordinatesByYear, 'red');
-      this._drawFluctuations(coordinatesByYear, '#ff000055', '#0000ff55');
+      const width = coordinatesByYear[1].x - coordinatesByYear[0].x;
+      this._drawBars(coordinatesByYear, width, '#ff000055', '#0000ff55');
+      this._drawLine(coordinatesByYear, width, 'red');
     }
+
+    this._drawAxisFront(max, min, start, end);
   }
 
   /**
@@ -81,36 +85,44 @@ export default class Graph {
    * @private
    */
   _clearCanvas() {
+    this.ctx.restore();
     this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
   }
 
   /**
-   *
+   * Draw cartesian coordinate system
    * @param {number} max - max coordinate
    * @param {number} min - min coordinate
    * @param {number} start - year
    * @param {number} end - year
    * @private
    */
-  _drawCartesianCoordinateSystem(max, min, start, end) {
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = 'grey';
-
-    // y
-    this.ctx.moveTo(this.GRAPH_PADDING, this.GRAPH_PADDING);
-    this.ctx.lineTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
-
-    // x
-    this.ctx.moveTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
-    this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
-
-    this.ctx.stroke();
-
+  _drawAxisBack(max, min, start, end) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = 'lightgrey';
     // x middle
     this.ctx.moveTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT / 2);
     this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT / 2);
+
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  /**
+   * Draw cartesian coordinate system
+   * @param {number} max - max coordinate
+   * @param {number} min - min coordinate
+   * @param {number} start - year
+   * @param {number} end - year
+   * @private
+   */
+  _drawAxisFront(max, min, start, end) {
+    // Axis
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = 'grey';
+
+    this.ctx.clearRect(0, 0, this.GRAPH_PADDING, this.CANVAS_HEIGHT);
+    this.ctx.clearRect(0, this.CANVAS_HEIGHT - this.GRAPH_PADDING, this.CANVAS_WIDTH, this.GRAPH_PADDING);
 
     // text y
     this.ctx.font = '12px verdana';
@@ -121,37 +133,49 @@ export default class Graph {
     this.ctx.fillText(start, this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
     this.ctx.fillText(end, this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
 
+    // y
+    this.ctx.moveTo(this.GRAPH_PADDING, this.GRAPH_PADDING);
+    this.ctx.lineTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
+
+    // x
+    this.ctx.moveTo(this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
+    this.ctx.lineTo(this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
+
     this.ctx.stroke();
+    this.ctx.restore();
   }
 
   /**
    * Draw graph
-   * - just solid line
    * @param {Array} coordinates – list of coordinates
+   * @param {number} width
    * @param {string} color
    * @private
    */
-  _drawGraph(coordinates, color) {
+  _drawLine(coordinates, width, color) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 2;
     this.ctx.setLineDash([]);
+
+    const localWidth = width / 2;
     if (coordinates.length > 1) {
-      this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+      this.ctx.moveTo(coordinates[0].x + localWidth, coordinates[0].y);
       for (let i = 1; i < coordinates.length; ++i) {
-        this.ctx.lineTo(coordinates[i].x, coordinates[i].y);
+        this.ctx.lineTo(coordinates[i].x + localWidth, coordinates[i].y);
       }
     }
     this.ctx.stroke();
+    this.ctx.restore();
   }
 
   /**
    * Draw graph
-   * - group by levels
    * @param {Array} coordinates – list of coordinates
    * @param {string} color
    * @private
    */
-  _drawGraphByGroup(coordinates, color) {
+  _drawLevelLines(coordinates, color) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
     this.ctx.setLineDash([2, 3]);
@@ -165,31 +189,38 @@ export default class Graph {
       this.ctx.lineTo(coordinates[i].x + width, coordinates[i].y);
     }
     this.ctx.stroke();
+    this.ctx.restore();
   }
 
   /**
-   * Draw fluctuations
+   * Draw fluctuations of value
    * @param {Array} coordinates – list of coordinates
+   * @param {number} width
    * @param {string} colorUp
    * @param {string} colorDown
    * @private
    */
-  _drawFluctuations(coordinates, colorUp, colorDown) {
+  _drawBars(coordinates, width, colorUp, colorDown) {
     this.ctx.beginPath();
     this.ctx.strokeStyle = colorUp;
+
+    const localWidth = Math.round(width) - 2;
+    this.ctx.lineWidth = localWidth > 1 ? localWidth : 1;
+
     for (let coordinate of coordinates) {
-      this.ctx.moveTo(coordinate.x, coordinate.max);
-      this.ctx.lineTo(coordinate.x, coordinate.y);
+      this.ctx.moveTo(coordinate.x + width / 2, coordinate.max);
+      this.ctx.lineTo(coordinate.x + width / 2, coordinate.y);
     }
     this.ctx.stroke();
 
     this.ctx.beginPath();
     this.ctx.strokeStyle = colorDown;
     for (let coordinate of coordinates) {
-      this.ctx.moveTo(coordinate.x, coordinate.min);
-      this.ctx.lineTo(coordinate.x, coordinate.y);
+      this.ctx.moveTo(coordinate.x + width / 2, coordinate.min);
+      this.ctx.lineTo(coordinate.x + width / 2, coordinate.y);
     }
     this.ctx.stroke();
+    this.ctx.restore();
   }
 
   /**
@@ -246,14 +277,14 @@ export default class Graph {
     // calculate coordinates
     const MaxMinDifference = max - min;
 
-    const dataLengthByYear = data.length;
+    const dataLengthByYear = parseMonth ? data.length : data.length + 1;
     const dataLengthByMonth = (data.length) * 11;
 
     const graphWidth = this.CANVAS_WIDTH - this.GRAPH_PADDING * 2;
     const graphHeight = this.CANVAS_HEIGHT - this.GRAPH_PADDING * 2;
     const INVERT_VALUES_OF_Y = this.GRAPH_PADDING + graphHeight;
 
-    for (let cursorYear = 0; cursorYear < dataLengthByYear; ++cursorYear) {
+    for (let cursorYear = 0; cursorYear < data.length; ++cursorYear) {
       // by year
       const yValue = data[cursorYear].v;
       coordinatesByYear.push(

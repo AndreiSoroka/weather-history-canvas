@@ -1,7 +1,7 @@
 const DEFAULT_PAGE = '/';
 const NOT_FOUND_PAGE = '/not-found';
 
-const defaultPages = {
+const DEFAULT_PAGES = {
   [NOT_FOUND_PAGE]: {
     name: 'Not found',
     isError: true,
@@ -16,14 +16,14 @@ const defaultPages = {
 };
 
 export default class Router {
-  constructor({ pages, defaultPage = DEFAULT_PAGE, title = null }) {
-    this.$title = title;
-    this.pages = { ...defaultPages, ...pages };
+  constructor({ pages, defaultPage = DEFAULT_PAGE, $title = null }) {
+    this.$title = $title;
+    this.pages = { ...DEFAULT_PAGES, ...pages };
     this.defaultPage = defaultPage;
+    this.fnsChangePages = [];
 
     const path = this._getPath();
     this.currentPage = this.pages[path] || this.pages[this.defaultPage];
-    this.fnsChangePages = [];
 
     this._beforeEnter(path);
     window.onpopstate = (e) => this._handleOnpopstate(e);

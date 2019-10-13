@@ -2,6 +2,7 @@ body {
     background: #eee;
     font-size: 18px;
     font-family: Verdana, serif;
+    min-width: 125px;
 }
 
 .title {
@@ -30,11 +31,10 @@ body {
     flex: 2;
 }
 
-.nav-el {
+.control-element {
     display: inline-block;
     text-decoration: none;
-    min-width: 150px;
-    padding: 10px;
+    padding: 5px;
     background: grey;
     color: white;
     font-size: 20px;
@@ -42,11 +42,24 @@ body {
     text-align: center;
 }
 
-.nav-el:hover {
+.control-element:hover {
     cursor: pointer;
     background: dimgrey;
 }
 
+.graph-navigation {
+    border-radius: 5px;
+}
+
+.graph-navigation:disabled {
+    background: lightgray;
+}
+
+.column-item {
+    display: block;
+    max-width: 70%;
+    padding: 7px;
+}
 
 footer {
     color: grey;
@@ -76,6 +89,7 @@ select {
 
 .graph-info {
     position: absolute;
+    pointer-events: none;
     background: #ffffffaa;
     font-size: 10px;
     padding: 5px;
@@ -100,4 +114,13 @@ select {
 
 .link {
     color: inherit;
+}
+
+.error {
+    border: 1px solid #d69e00;
+    display: none;
+    background: #fcffdf;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    color: #5a3600;
 }

@@ -5,9 +5,6 @@ export default class Store {
   constructor() {
     this.db = this._connectDB(window.indexedDB)
       .then(this._initLocalState.bind(this))
-      .catch(error => {
-        alert(error);
-      });
   }
 
   /**
@@ -52,7 +49,7 @@ export default class Store {
    */
   _connectDB(idb) {
     if (!idb) {
-      return Promise.reject('Not supported indexedDB');
+      throw new Error('Not supported indexedDB')
     }
 
     return new Promise((resolve, reject) => {
@@ -71,7 +68,7 @@ export default class Store {
       request.onupgradeneeded = (e) => {
         e.currentTarget.result.createObjectStore(NAME_TEMPERATURE);
         e.currentTarget.result.createObjectStore(NAME_PRECIPITATION);
-        return this._connectDB();
+        return this._connectDB(idb);
       };
     });
   }

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Weather History Canvas</title>
 </head>
 <body>
@@ -10,20 +11,19 @@
 
     <div class="app">
         <div class="column column__left">
-            <div>
-                <a href="#/temperature" class="nav-el">Temperature</a>
-            </div>
-            <div>
-                <a href="#/precipitation" class="nav-el">Precipitation</a>
-            </div>
+            <a href="#/temperature" class="column-item control-element">Temperature</a>
+            <a href="#/precipitation" class="column-item control-element">Precipitation</a>
         </div>
         <div class="column column__right">
             <header>
                 <h3 id="title" class="title">Temperature</h3>
             </header>
+            <div class="error" id="error"></div>
             <div class="filters">
-                <select id="startYear" class="filters__select nav-el"></select>
-                <select id="endYear" class="filters__select nav-el"></select>
+                <select id="startYear" class="filters__select control-element"></select>
+                <select id="endYear" class="filters__select control-element"></select>
+                <button id="graph-nav-left" class="control-element graph-navigation" disabled><</button>
+                <button id="graph-nav-right"class="control-element graph-navigation" disabled>></button>
             </div>
             <div class="graph-wrapper">
                 <div id="graph-info" class="graph-info">test</div>

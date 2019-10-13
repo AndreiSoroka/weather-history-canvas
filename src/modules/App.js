@@ -1,3 +1,6 @@
+import Graph from './Graph.js';
+import Store from './Store.js';
+
 /**
  * Local state
  * @type {Object}
@@ -52,6 +55,17 @@ Object.defineProperties(state, {
   },
 
   range: {
+    set({ startYear, endYear }) {
+      if (startYear && this._startYear !== startYear) {
+        this._startYear = startYear;
+        this.emit('startYear', this._startYear);
+      }
+      if (endYear && this._endYear !== endYear) {
+        this._endYear = endYear;
+        this.emit('endYear', this._endYear);
+      }
+      this.emit('range', this.range);
+    },
     get() {
       return {
         startYear: Math.min(this.startYear, this.endYear),
@@ -142,18 +156,17 @@ Object.defineProperties(state, {
 
 
 export default class App {
-  constructor({ store, graph, defaultState, graphInfo }) {
+  constructor({ defaultState, $graph, $graphInfo, width = 500, height = 300 }) {
     this.state = state;
-    this.$graphInfo = graphInfo;
+    this.$graphInfo = $graphInfo;
+    this.store = new Store();
+    this.graph = new Graph($graph, width, height);
 
     for (let key in defaultState) {
       if (defaultState.hasOwnProperty(key) && state[key] === undefined) {
         this.state[key] = defaultState[key];
       }
     }
-
-    this.store = store;
-    this.graph = graph;
   }
 
   /**
@@ -181,14 +194,14 @@ export default class App {
    */
   showInformationInGraph(x, y, originalX, originalY) {
     const info = this.graph.getInformation(x, y);
-    if (!info){
+    if (!info) {
       this.$graphInfo.style.display = 'none';
       return;
     }
     this.$graphInfo.style.display = 'block';
     this.$graphInfo.innerHTML = `<div>Year: ${info.infoX}</div><div>Value: ${info.infoY}</div>`;
 
-    this.$graphInfo.style.top = `${originalY - this.$graphInfo.clientHeight - 5}px`;
-    this.$graphInfo.style.left = `${originalX - this.$graphInfo.clientWidth/2}px`;
+    this.$graphInfo.style.top = `${originalY - this.$graphInfo.scrollHeight}px`;
+    this.$graphInfo.style.left = `${originalX - this.$graphInfo.scrollWidth / 2}px`;
   }
 }
