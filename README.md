@@ -11,8 +11,12 @@ npm install;
 ### Build
 ```bash
 // dev server
-npm run run start:dev;
+npm run devserver;
 
 // build
 npm run build;
+
+// buid for heroku
+npm run heroku-postbuild;
+npm start;
 ```
