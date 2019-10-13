@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const OfflinePlugin = require('offline-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 
@@ -14,8 +15,9 @@ module.exports = {
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       title: 'Weather History Canvas',
-      template: 'src/index.html'
+      template: 'src/index.html',
     }),
+    new OfflinePlugin(),
   ],
   module: {
     rules: [

@@ -3,7 +3,9 @@ import App from './modules/App.js';
 import Graph from './modules/Graph.js';
 import Store from './modules/Store.js';
 import Router from './modules/Router.js';
+import * as OfflinePluginRuntime from 'offline-plugin/runtime';
 
+OfflinePluginRuntime.install();
 const TEMPERATURE_PAGE = '/temperature';
 const PRECIPITATION_PAGE = '/precipitation';
 const CANVAS_WIDTH = 500;
