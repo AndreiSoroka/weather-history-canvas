@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "start": "node ./serve.js",
+    "start": "serve ./dist",
     "devserver": "webpack-dev-server --open --content-base dist",
     "watch": "webpack --watch",
     "build": "webpack",
@@ -32,7 +32,7 @@
     "webpack-dev-server": "^3.8.2"
   },
   "dependencies": {
-    "serve-handler": "^6.1.2"
+    "serve": "^11.2.0"
   },
   "heroku-run-build-script": true
 }

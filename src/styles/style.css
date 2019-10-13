@@ -67,6 +67,7 @@ select {
 .graph {
     width: 100%;
     box-sizing: border-box;
+    cursor: pointer;
 }
 
 .graph-wrapper {
