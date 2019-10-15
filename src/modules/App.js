@@ -1,6 +1,9 @@
 import Graph from './Graph.js';
 import Store from './Store.js';
 
+const DISPLAY_BLOCK = 'block';
+const DISPLAY_NONE = 'none';
+
 /**
  * Local state
  * @type {Object}
@@ -158,12 +161,15 @@ Object.defineProperties(state, {
 export default class App {
   constructor({ defaultState, $graphInfoRange, $graphInfoPointer, $graph, $graphInfo, width = 500, height = 300 }) {
     this.state = state;
+    this.$graph = $graph;
     this.$graphInfo = $graphInfo;
     this.$graphInfoRange = $graphInfoRange;
     this.$graphInfoPointer = $graphInfoPointer;
     this.store = new Store();
     this.graph = new Graph($graph, width, height);
     this._currentRangeData = [];
+    this.width = width;
+    this.height = height;
 
     for (let key in defaultState) {
       if (defaultState.hasOwnProperty(key) && state[key] === undefined) {
@@ -181,7 +187,8 @@ export default class App {
    */
   async drawGraph(start, end, type = 'temperature') {
     const range = end - start + 1;
-    this.$graphInfoPointer.style.display = 'none';
+    this.showGraphInfoPointer(false);
+    this.showGraphInfo(false);
     if (range === 1) {
       this.$graphInfoRange.innerText = `Range: 1 year`;
     } else {
@@ -197,31 +204,77 @@ export default class App {
 
   /**
    * Show information in graph
-   * @param {number} x - scaled coordinate
-   * @param {number} y - scaled coordinate
-   * @param originalX - original coordinate
-   * @param originalY - original coordinate
+   * @param {number} eventX - coordinate
+   * @param {number} eventY - coordinate
    */
-  showInformationInGraph(x, y, originalX, originalY) {
+  showInformationInGraph(eventX, eventY) {
+    const { x, y } = this._graphCoordinates({ eventX, eventY });
     const info = this.graph.getInformation(x, y);
     if (!info) {
-      this.$graphInfoPointer.style.display = 'none';
-      this.$graphInfo.innerHTML = '';
+      this.showGraphInfoPointer(false);
+      this.showGraphInfo(false);
       return;
     }
 
     const { infoY, index } = info;
     const data = this._currentRangeData[index];
 
+    this.showGraphInfo(true);
     this.$graphInfo.innerHTML = `<div>Year: ${data.year}</div>`
       + `<div>Average value: ${this.graph.formatValue(data.v)}</div>`
       + `<div>Max value: ${this.graph.formatValue(data.max)}</div>`
       + `<div>Min value: ${this.graph.formatValue(data.min)}</div>`;
 
     this.$graphInfoPointer.innerText = infoY;
-    this.$graphInfoPointer.style.display = 'block';
-    this.$graphInfoPointer.style.top = `${originalY - this.$graphInfoPointer.scrollHeight}px`;
-    this.$graphInfoPointer.style.left = `${originalX - this.$graphInfoPointer.scrollWidth / 2}px`;
+    this.showGraphInfoPointer(true);
+    const { localX, localY } = this._appCoordinates({ eventX, eventY });
+    this.$graphInfoPointer.style.top = `${localY}px`;
+    this.$graphInfoPointer.style.left = `${localX}px`;
+  }
 
+  /**
+   * Change display for $graphInfoPointer
+   * @param {boolean} val
+   */
+  showGraphInfoPointer(val) {
+    this.$graphInfoPointer.style.display = val ? DISPLAY_BLOCK : DISPLAY_NONE;
+  }
+
+  /**
+   * Change display for $graphInfo
+   * @param {boolean} val
+   */
+  showGraphInfo(val) {
+    this.$graphInfo.style.display = val ? DISPLAY_BLOCK : DISPLAY_NONE;
+  }
+
+  /**
+   * Coordinates for canvas
+   * @param {number} eventX
+   * @param {number} eventY
+   * @returns {{x: number, y: number}}
+   * @private
+   */
+  _graphCoordinates({ eventX, eventY }) {
+    const rect = this.$graph.getBoundingClientRect();
+    return {
+      x: (this.width / rect.width) * (eventX - rect.left),
+      y: (this.height / rect.height) * (eventY - rect.top),
+    };
+  }
+
+  /**
+   * Coordinates for DOM
+   * @param {number} eventX
+   * @param {number} eventY
+   * @returns {{localY: number, localX: number}}
+   * @private
+   */
+  _appCoordinates({ eventX, eventY }) {
+    const rect = this.$graph.getBoundingClientRect();
+    return {
+      localX: eventX - rect.left - this.$graphInfoPointer.scrollWidth / 2,
+      localY: eventY - rect.top - this.$graphInfoPointer.scrollHeight,
+    };
   }
 }

@@ -1,3 +1,8 @@
+const COLOR_SIMPLE_RED = 'red';
+const COLOR_RED = '#ff000055';
+const COLOR_BLUE = '#0000ff55';
+const COLOR_PURPLE = '#342B5F55';
+
 const TYPE_YEAR = 'year';
 const TYPE_MONTH = 'month';
 
@@ -38,12 +43,12 @@ export default class Graph {
     this._drawAxisBack(max, min, start, end);
 
     if (coordinatesByMonth.length > 0) {
-      this._drawLevelLines(coordinatesByYear, 'red');
-      this._drawLine(coordinatesByMonth, 1, 'rgba(52,43,95,0.52)');
+      this._drawLevelLines(coordinatesByYear, COLOR_SIMPLE_RED);
+      this._drawLine(coordinatesByMonth, 1, COLOR_PURPLE);
     } else {
       const width = coordinatesByYear[1].x - coordinatesByYear[0].x;
-      this._drawBars(coordinatesByYear, width, '#ff000055', '#0000ff55');
-      this._drawLine(coordinatesByYear, width, 'red');
+      this._drawBars(coordinatesByYear, width, COLOR_RED, COLOR_BLUE);
+      this._drawLine(coordinatesByYear, width, COLOR_SIMPLE_RED);
     }
 
     this._drawAxisFront(max, min, start, end);
@@ -66,16 +71,9 @@ export default class Graph {
 
     const coefficientY = (this.CANVAS_HEIGHT - this.GRAPH_PADDING - y) / (this.CANVAS_HEIGHT - 2 * this.GRAPH_PADDING);
     const infoY = this.formatValue(Math.round(coefficientY * (this.maxY - this.minY) + this.minY));
+    const index = this.coordinatesByYear.findIndex(item => item.x > x);
 
-    let index = this.coordinatesByYear.length - 1;
-    for (let i = 0; i < this.coordinatesByYear.length; ++i) {
-      if (this.coordinatesByYear[i].x > x) {
-        index = i - 1;
-        break;
-      }
-    }
-
-    return { infoY, index };
+    return { infoY, index: index === -1 ? this.coordinatesByYear.length - 1 : index - 1 };
   }
 
   /**

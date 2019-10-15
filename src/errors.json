@@ -1,4 +1,5 @@
 {
   "app": "Application is not working",
-  "drawGraph": "Error drawing graph"
+  "drawGraph": "Error drawing graph",
+  "pageNotFound": "Page not found"
 }

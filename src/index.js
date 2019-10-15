@@ -15,6 +15,16 @@ const CANVAS_HEIGHT = 300;
 const START_YEAR = 1881;
 const END_YEAR = 2006;
 
+const DISPLAY_BLOCK = 'block';
+const DISPLAY_NONE = 'none';
+const KEY_ARROW_LEFT = 'ArrowLeft';
+const KEY_ARROW_RIGHT = 'ArrowRight';
+const EVENT_KEYDOWN = 'keydown';
+const EVENT_CLICK = 'click';
+const EVENT_RESIZE = 'resize';
+const EVENT_LOAD = 'load';
+const EVENT_MOUSEDOWN = 'mousedown';
+
 const $graphInfoPointer = document.getElementById('graph-info-pointer');
 const $graphInfoRange = document.getElementById('graph-info-range');
 const $graphNavLeft = document.getElementById('graph-nav-left');
@@ -69,18 +79,15 @@ async function init() {
 
   app.state.connectRouter(router, 'type', (page) => {
     if (page.isError) {
-      alert('page not found');
+      alert(errors.pageNotFound);
       router.push(TEMPERATURE_PAGE);
       return false;
     }
     return true;
   });
 
-  $graph.addEventListener('mousedown', function (event) {
-    const rect = $graph.getBoundingClientRect();
-    const x = (CANVAS_WIDTH / rect.width) * (event.clientX - rect.left);
-    const y = (CANVAS_HEIGHT / rect.height) * (event.clientY - rect.top);
-    app.showInformationInGraph(x, y, event.clientX - rect.left, event.clientY - rect.top);
+  $graph.addEventListener(EVENT_MOUSEDOWN, (event) => {
+    app.showInformationInGraph(event.clientX, event.clientY);
   });
 
   app.state.connectEl($startYear, 'startYear');
@@ -93,22 +100,22 @@ async function init() {
       .catch(e => showError(errors.drawGraph, e));
   });
 
-  $graphNavLeft.addEventListener('click', shiftRangeLeft);
-  $graphNavRgiht.addEventListener('click', shiftRangeRight);
+  $graphNavLeft.addEventListener(EVENT_CLICK, shiftRangeLeft);
+  $graphNavRgiht.addEventListener(EVENT_CLICK, shiftRangeRight);
 
-  window.addEventListener('resize', () => {
-    $graphInfoPointer.style.display = 'none';
+  window.addEventListener(EVENT_RESIZE, () => {
+    app.showGraphInfoPointer(false);
   }, true);
 
   app.drawGraph(app.state.startYear, app.state.endYear, app.state.type)
     .catch(e => showError(errors.drawGraph, e));
 
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener(EVENT_KEYDOWN, (e) => {
     switch (e.code) {
-      case'ArrowLeft':
+      case KEY_ARROW_LEFT:
         shiftRangeLeft();
         break;
-      case 'ArrowRight': {
+      case KEY_ARROW_RIGHT: {
         shiftRangeRight();
         break;
       }
@@ -135,11 +142,11 @@ function showError(message, log) {
   console.error(log);
 
   if (!message) {
-    $error.style.display = 'none';
+    $error.style.display = DISPLAY_NONE;
     return;
   }
-  $error.style.display = 'block';
+  $error.style.display = DISPLAY_BLOCK;
   $error.innerText = message;
 }
 
-document.addEventListener('load', init().catch(e => showError(errors.app, e)));
+document.addEventListener(EVENT_LOAD, init().catch(e => showError(errors.app, e)));
