@@ -15,6 +15,8 @@ const CANVAS_HEIGHT = 300;
 const START_YEAR = 1881;
 const END_YEAR = 2006;
 
+const $graphInfoPointer = document.getElementById('graph-info-pointer');
+const $graphInfoRange = document.getElementById('graph-info-range');
 const $graphNavLeft = document.getElementById('graph-nav-left');
 const $graphNavRgiht = document.getElementById('graph-nav-right');
 const $error = document.getElementById('error');
@@ -53,6 +55,8 @@ async function init() {
   const app = new App({
     $graph,
     $graphInfo,
+    $graphInfoPointer,
+    $graphInfoRange,
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     defaultState,
@@ -92,6 +96,9 @@ async function init() {
   $graphNavLeft.addEventListener('click', shiftRangeLeft);
   $graphNavRgiht.addEventListener('click', shiftRangeRight);
 
+  window.addEventListener('resize', () => {
+    $graphInfoPointer.style.display = 'none';
+  }, true);
 
   app.drawGraph(app.state.startYear, app.state.endYear, app.state.type)
     .catch(e => showError(errors.drawGraph, e));

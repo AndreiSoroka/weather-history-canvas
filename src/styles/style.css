@@ -87,22 +87,31 @@ select {
     position: relative;
 }
 
-.graph-info {
+.graphInfo {
+    font-size: 10px;
+}
+.graphInfoRange {
+    text-align: center;
+    font-size: 10px;
+}
+
+.graphInfoPointer {
     position: absolute;
     pointer-events: none;
-    background: #ffffffaa;
+    background: #000000aa;
     font-size: 10px;
+    color: white;
     padding: 5px;
     border-radius: 5px;
     display: none;
 }
 
-.graph-info::after {
+.graphInfoPointer::after {
     content: " ";
     width: 0;
     height: 0;
     border: 5px solid transparent;
-    border-top-color: #ffffffaa;
+    border-top-color: #000000aa;
     border-bottom: 0;
     position: absolute;
     bottom: -5px;

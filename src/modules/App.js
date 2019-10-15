@@ -156,11 +156,14 @@ Object.defineProperties(state, {
 
 
 export default class App {
-  constructor({ defaultState, $graph, $graphInfo, width = 500, height = 300 }) {
+  constructor({ defaultState, $graphInfoRange, $graphInfoPointer, $graph, $graphInfo, width = 500, height = 300 }) {
     this.state = state;
     this.$graphInfo = $graphInfo;
+    this.$graphInfoRange = $graphInfoRange;
+    this.$graphInfoPointer = $graphInfoPointer;
     this.store = new Store();
     this.graph = new Graph($graph, width, height);
+    this._currentRangeData = [];
 
     for (let key in defaultState) {
       if (defaultState.hasOwnProperty(key) && state[key] === undefined) {
@@ -177,10 +180,17 @@ export default class App {
    * @returns {Promise<void>}
    */
   async drawGraph(start, end, type = 'temperature') {
-    this.$graphInfo.style.display = 'none';
+    const range = end - start + 1;
+    this.$graphInfoPointer.style.display = 'none';
+    if (range === 1) {
+      this.$graphInfoRange.innerText = `Range: 1 year`;
+    } else {
+      this.$graphInfoRange.innerText = `Range: ${range} years`;
+    }
     const logKey = `drawGraph ${start}-${end}, ${type}`;
     console.time(logKey);
     const { result } = await this.store.getData(start, end, type);
+    this._currentRangeData = result;
     this.graph.draw(start, end, result);
     console.timeEnd(logKey);
   }
@@ -195,13 +205,23 @@ export default class App {
   showInformationInGraph(x, y, originalX, originalY) {
     const info = this.graph.getInformation(x, y);
     if (!info) {
-      this.$graphInfo.style.display = 'none';
+      this.$graphInfoPointer.style.display = 'none';
+      this.$graphInfo.innerHTML = '';
       return;
     }
-    this.$graphInfo.style.display = 'block';
-    this.$graphInfo.innerHTML = `<div>Year: ${info.infoX}</div><div>Value: ${info.infoY}</div>`;
 
-    this.$graphInfo.style.top = `${originalY - this.$graphInfo.scrollHeight}px`;
-    this.$graphInfo.style.left = `${originalX - this.$graphInfo.scrollWidth / 2}px`;
+    const { infoY, index } = info;
+    const data = this._currentRangeData[index];
+
+    this.$graphInfo.innerHTML = `<div>Year: ${data.year}</div>`
+      + `<div>Average value: ${this.graph.formatValue(data.v)}</div>`
+      + `<div>Max value: ${this.graph.formatValue(data.max)}</div>`
+      + `<div>Min value: ${this.graph.formatValue(data.min)}</div>`;
+
+    this.$graphInfoPointer.innerText = infoY;
+    this.$graphInfoPointer.style.display = 'block';
+    this.$graphInfoPointer.style.top = `${originalY - this.$graphInfoPointer.scrollHeight}px`;
+    this.$graphInfoPointer.style.left = `${originalX - this.$graphInfoPointer.scrollWidth / 2}px`;
+
   }
 }

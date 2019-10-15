@@ -9,7 +9,6 @@ export default class Graph {
     this.coordinatesByYear = [];
     this.minY = 0;
     this.maxY = 0;
-    this.start = 0;
 
     if (graphCanvas.getContext) {
       this.ctx = graphCanvas.getContext('2d');
@@ -30,7 +29,6 @@ export default class Graph {
     const { min, max } = this._findMinMaxInData(data, type);
     this.minY = min;
     this.maxY = max;
-    this.start = start;
 
     const { coordinatesByYear, coordinatesByMonth }
       = this._convertToGraph(data, min, max, type === TYPE_MONTH);
@@ -67,17 +65,17 @@ export default class Graph {
     }
 
     const coefficientY = (this.CANVAS_HEIGHT - this.GRAPH_PADDING - y) / (this.CANVAS_HEIGHT - 2 * this.GRAPH_PADDING);
-    const infoY = Math.round(coefficientY * (this.maxY - this.minY) + this.minY) / 100;
+    const infoY = this.formatValue(Math.round(coefficientY * (this.maxY - this.minY) + this.minY));
 
-    let infoX = this.coordinatesByYear.length - 1;
+    let index = this.coordinatesByYear.length - 1;
     for (let i = 0; i < this.coordinatesByYear.length; ++i) {
       if (this.coordinatesByYear[i].x > x) {
-        infoX = i - 1;
+        index = i - 1;
         break;
       }
     }
 
-    return { infoY, infoX: this.start + infoX };
+    return { infoY, index };
   }
 
   /**
@@ -126,9 +124,9 @@ export default class Graph {
 
     // text y
     this.ctx.font = '12px verdana';
-    this.ctx.fillText(max / 100, 0, this.GRAPH_PADDING);
-    this.ctx.fillText((max + min) / 200, 0, (this.CANVAS_HEIGHT) / 2);
-    this.ctx.fillText(min / 100, 0, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
+    this.ctx.fillText(this.formatValue(max), 0, this.GRAPH_PADDING);
+    this.ctx.fillText(this.formatValue((max + min) / 2), 0, (this.CANVAS_HEIGHT) / 2);
+    this.ctx.fillText(this.formatValue(min), 0, this.CANVAS_HEIGHT - this.GRAPH_PADDING);
 
     this.ctx.fillText(start, this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
     this.ctx.fillText(end, this.CANVAS_WIDTH - this.GRAPH_PADDING, this.CANVAS_HEIGHT - this.GRAPH_PADDING + 24);
@@ -312,5 +310,9 @@ export default class Graph {
     }
 
     return { coordinatesByMonth, coordinatesByYear };
+  }
+
+  formatValue(num) {
+    return num / 100;
   }
 }
