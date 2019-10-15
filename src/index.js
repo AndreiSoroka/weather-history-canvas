@@ -93,8 +93,8 @@ async function init() {
   app.state.connectEl($startYear, 'startYear');
   app.state.connectEl($endYear, 'endYear');
   app.state.on('range', ({ startYear, endYear, type }) => {
-    $graphNavLeft.disabled = app.state.startYear <= START_YEAR;
-    $graphNavRgiht.disabled = app.state.endYear >= END_YEAR;
+    $graphNavLeft.disabled = startYear <= START_YEAR;
+    $graphNavRgiht.disabled = endYear >= END_YEAR;
 
     app.drawGraph(startYear, endYear, type)
       .catch(e => showError(errors.drawGraph, e));
@@ -123,14 +123,14 @@ async function init() {
   });
 
   function shiftRangeRight() {
-    if (app.state.endYear >= END_YEAR) {
+    if (app.state.range.endYear >= END_YEAR) {
       return;
     }
     app.state.range = { startYear: app.state.startYear + 1, endYear: app.state.endYear + 1 };
   }
 
   function shiftRangeLeft() {
-    if (app.state.startYear <= START_YEAR) {
+    if (app.state.range.startYear <= START_YEAR) {
       return;
     }
     app.state.range = { startYear: app.state.startYear - 1, endYear: app.state.endYear - 1 };
